@@ -35,15 +35,18 @@ namespace HKCLTool
 
         static void Main(string[] args)
         {
-            if (args[0] == "-l")
+            if (args.Length <= 0)
+                Console.WriteLine("not enough arguments");
+            else if (args[0] == "-l")
             {
                 var hkfile = ReadHkclfile(args[1]);
                 Listhkcl(hkfile);
             }
-            else if (args.Length <= 3)
-                Console.WriteLine("not enough arguments");
             else if (args[0] == "-json" || args[0] == "-hku" || args[0] == "-hknx")
             {
+                if (args.Length <= 3)
+                    Console.WriteLine("not enough arguments");
+
                 hkclfile = ReadHkclfile(args[1]);
                 var hk2 = ReadHkclfile(args[2]);
 
@@ -62,6 +65,11 @@ namespace HKCLTool
                 }
                 ExportFile(hkclfile, args[0], args[1]);
                 return;
+            }
+            else if (args[0] == "--bonelist")
+            {
+                var hkfile = ReadHkclfile(args[1]);
+                ListBones(hkfile);
             }
             else
                 Console.WriteLine("invaild armuments");
@@ -243,6 +251,27 @@ namespace HKCLTool
             {
                 Console.WriteLine($"{i}: {name}");
                 i++;
+            }
+        }
+
+        private static void ListBones(hkRootLevelContainer hkfile)
+        {
+            foreach (var namedVariant in hkfile.m_namedVariants)
+            {
+                if (namedVariant.m_className == "hkaAnimationContainer")
+                {
+                    hkaAnimationContainer skele = (hkaAnimationContainer)namedVariant.m_variant;
+
+                    foreach (var skeleton in skele.m_skeletons)
+                    {
+                        Console.WriteLine(skeleton.m_name);
+
+                        foreach (var bone in skeleton.m_bones)
+                        {
+                            Console.WriteLine($"\t{bone.m_name}");
+                        }
+                    }
+                }
             }
         }
     }

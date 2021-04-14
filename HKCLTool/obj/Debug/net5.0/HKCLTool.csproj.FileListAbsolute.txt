@@ -14,3 +14,4 @@ D:\Users\moonl\source\repos\HKCLTool\HKCLTool\obj\Debug\net5.0\HKCLTool.dll
 D:\Users\moonl\source\repos\HKCLTool\HKCLTool\obj\Debug\net5.0\ref\HKCLTool.dll
 D:\Users\moonl\source\repos\HKCLTool\HKCLTool\obj\Debug\net5.0\HKCLTool.pdb
 D:\Users\moonl\source\repos\HKCLTool\HKCLTool\obj\Debug\net5.0\HKCLTool.genruntimeconfig.cache
+D:\Users\moonl\source\repos\HKCLTool\HKCLTool\obj\Debug\net5.0\HKCLTool.csprojAssemblyReference.cache
