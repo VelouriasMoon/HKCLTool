@@ -44,27 +44,39 @@ namespace HKCLTool
             }
             else if (args[0] == "-json" || args[0] == "-hku" || args[0] == "-hknx")
             {
-                if (args.Length <= 3)
-                    Console.WriteLine("not enough arguments");
-
-                hkclfile = ReadHkclfile(args[1]);
-                var hk2 = ReadHkclfile(args[2]);
-
-                foreach (string indexes in args[3..])
+                if (args[1] == "-r")
                 {
-                    try
-                    {
-                        Convert.ToInt32(indexes);
-                    }
-                    catch (FormatException e)
-                    {
-                        Console.WriteLine("invaild armuments");
-                        return;
-                    }
-                    MergeHKCL(hkclfile, hk2, Convert.ToInt32(indexes));
+                    hkclfile = ReadHkclfile(args[2]);
+                    RemoveCloth(hkclfile, Convert.ToInt32(args[3]));
+                    ExportFile(hkclfile, args[0], args[2]);
+                    Listhkcl(hkclfile);
+                    return;
                 }
-                ExportFile(hkclfile, args[0], args[1]);
-                return;
+                else
+                {
+                    if (args.Length <= 3)
+                        Console.WriteLine("not enough arguments");
+
+                    hkclfile = ReadHkclfile(args[1]);
+                    var hk2 = ReadHkclfile(args[2]);
+
+                    foreach (string indexes in args[3..])
+                    {
+                        try
+                        {
+                            Convert.ToInt32(indexes);
+                        }
+                        catch (FormatException e)
+                        {
+                            Console.WriteLine("invaild armuments");
+                            return;
+                        }
+                        MergeHKCL(hkclfile, hk2, Convert.ToInt32(indexes));
+                    }
+                    ExportFile(hkclfile, args[0], args[1]);
+                    //Listhkcl(hkclfile);
+                    return;
+                }
             }
             else if (args[0] == "--bonelist")
             {
@@ -273,6 +285,26 @@ namespace HKCLTool
                     }
                 }
             }
+        }
+
+        private static void RemoveCloth(hkRootLevelContainer hkfile, int index)
+        {
+            foreach (var namedVariant in hkfile.m_namedVariants)
+            {
+                if (namedVariant.m_className == "hclClothContainer")
+                {
+                    hclClothContainer Cloth = (hclClothContainer)namedVariant.m_variant;
+                    Cloth.m_clothDatas.RemoveAt(index);
+                    namedVariant.m_variant = Cloth;
+                }
+                if (namedVariant.m_className == "hkaAnimationContainer")
+                {
+                    hkaAnimationContainer skeleton = (hkaAnimationContainer)namedVariant.m_variant;
+                    skeleton.m_skeletons.RemoveAt(index);
+                    namedVariant.m_variant = skeleton;
+                }
+            }
+            hkclfile = hkfile;
         }
     }
 }
