@@ -1,8 +1,7 @@
 {
   "profiles": {
     "HKCLTool": {
-      "commandName": "Project",
-      "commandLineArgs": "--bonelist Armor_001_Head_A.json"
+      "commandName": "Project"
     }
   }
 }

@@ -41,6 +41,7 @@ namespace HKCLTool
             {
                 var hkfile = ReadHkclfile(args[1]);
                 Listhkcl(hkfile);
+                return;
             }
             else if (args[0] == "-json" || args[0] == "-hku" || args[0] == "-hknx")
             {
@@ -74,18 +75,22 @@ namespace HKCLTool
                         MergeHKCL(hkclfile, hk2, Convert.ToInt32(indexes));
                     }
                     ExportFile(hkclfile, args[0], args[1]);
-                    //Listhkcl(hkclfile);
+                    Listhkcl(hkclfile);
                     return;
                 }
             }
-            else if (args[0] == "--bonelist")
+            else if (args[0] == "--bonelist" || args[0] == "-bl")
             {
                 var hkfile = ReadHkclfile(args[1]);
                 ListBones(hkfile);
+                return;
             }
             else
                 Console.WriteLine("invaild armuments");
+            return;
         }
+
+        #region Main Hkx Handling
 
         private static readonly JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
         {
@@ -148,15 +153,34 @@ namespace HKCLTool
             return writtenRoot;
         }
 
+        #endregion
+
+        #region Managers
+
         internal static void MergeHKCL(hkRootLevelContainer hkfile, hkRootLevelContainer hkfile2, int index)
         {
             //Load key data from the second json into list for later
             foreach (var namedVariant in hkfile2.m_namedVariants)
             {
                 if (namedVariant.m_className == "hclClothContainer")
-                    ManageCloth(namedVariant);
+                {
+                    hclClothContainer ClothData = (hclClothContainer)namedVariant.m_variant;
+
+                    foreach (var clothdatas in ClothData.m_clothDatas)
+                    {
+                        ClothDataNameList.Add(clothdatas.m_name);
+                        newClothDatas.Add(clothdatas);
+                    }
+                }
                 if (namedVariant.m_className == "hkaAnimationContainer")
-                    ManageSkeleton(namedVariant);
+                {
+                    hkaAnimationContainer skele = (hkaAnimationContainer)namedVariant.m_variant;
+
+                    foreach (var skeleton in skele.m_skeletons)
+                    {
+                        newSkeletons.Add(skeleton);
+                    }
+                }
             }
 
             foreach (var namedVariant in hkfile.m_namedVariants)
@@ -195,28 +219,6 @@ namespace HKCLTool
             hkclfile = hkfile;
         }
 
-        private static void ManageCloth(hkRootLevelContainerNamedVariant hknamed)
-        {
-            hclClothContainer ClothData = (hclClothContainer)hknamed.m_variant;
-
-            foreach (var clothdatas in ClothData.m_clothDatas)
-            {
-                ClothDataNameList.Add(clothdatas.m_name);
-                newClothDatas.Add(clothdatas);
-            }
-        }
-
-        private static void ManageSkeleton(hkRootLevelContainerNamedVariant hknamed)
-        {
-            hkaAnimationContainer skele = (hkaAnimationContainer)hknamed.m_variant;
-
-            foreach (var skeleton in skele.m_skeletons)
-            {
-                //SkeleNameList.Add(skeleton.m_name);
-                newSkeletons.Add(skeleton);
-            }
-        }
-
         private static void ExportFile(hkRootLevelContainer hkfile, string outformat, string outpath)
         {
             outpath = outpath.Replace(Path.GetExtension(outpath), "");
@@ -247,6 +249,7 @@ namespace HKCLTool
         private static void Listhkcl(hkRootLevelContainer hkfile)
         {
             var namedVariant = hkfile.m_namedVariants[0];
+            ClothDataNameList = new List<string>();
 
             if (namedVariant.m_className == "hclClothContainer")
             {
@@ -258,6 +261,7 @@ namespace HKCLTool
                 }
             }
 
+            Console.WriteLine("Cloth List:");
             int i = 0;
             foreach (string name in ClothDataNameList)
             {
@@ -306,5 +310,7 @@ namespace HKCLTool
             }
             hkclfile = hkfile;
         }
+
+        #endregion
     }
 }
