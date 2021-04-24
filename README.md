@@ -3,9 +3,16 @@
 Merger tool for hkcl files based off the HKX2 libaray.
 
 usage:\
-`hkcltool [-json/-hku/-hknx] [hkcl to merge into] [hkcl to merge from] [list of cloth indexes]`
+merging: `hkcltool [-json/-hku/-hknx] [hkcl to merge into] [hkcl to merge from] [list of cloth indexes]`\
+listing: `hkcltool -l [hkcl or json]`\
+bones: `hkcltool -bl [hkcl or json]`\
+removing: `hkcltool [-json/-hku/-hknx] -r [hkcl or json] [index to remove]`
 
-### Examples
+example:\
+to add the 2 scarf physics from the stealth head to hylian upper and export them for the wii u\
+`hkcltool -hku Armor_001_Upper.hkcl Armor_012_Head_A.hkcl 4 5`
+
+### Visual Examples
 
 Tail physics added to Link's base mesh:\
 ![Tail](ExamplePictures/TailPhysics.gif?raw=true)
