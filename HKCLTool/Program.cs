@@ -37,47 +37,44 @@ namespace HKCLTool
         {
             if (args.Length <= 0)
                 Console.WriteLine("not enough arguments");
-            else if (args[0] == "-l")
+            else if (args[0] == "--list" || args[0] == "-l")
             {
                 var hkfile = ReadHkclfile(args[1]);
                 Listhkcl(hkfile);
                 return;
             }
-            else if (args[0] == "-json" || args[0] == "-hku" || args[0] == "-hknx")
+            else if (args[0] == "--merge" || args[0] == "-m")
             {
-                if (args[1] == "-r")
-                {
-                    hkclfile = ReadHkclfile(args[2]);
-                    RemoveCloth(hkclfile, Convert.ToInt32(args[3]));
-                    ExportFile(hkclfile, args[0], args[2]);
-                    Listhkcl(hkclfile);
-                    return;
-                }
-                else
-                {
-                    if (args.Length <= 3)
-                        Console.WriteLine("not enough arguments");
+                if (args.Length <= 3)
+                    Console.WriteLine("not enough arguments");
 
-                    hkclfile = ReadHkclfile(args[1]);
-                    var hk2 = ReadHkclfile(args[2]);
+                hkclfile = ReadHkclfile(args[2]);
+                var hk2 = ReadHkclfile(args[3]);
 
-                    foreach (string indexes in args[3..])
+                foreach (string indexes in args[4..])
+                {
+                    try
                     {
-                        try
-                        {
-                            Convert.ToInt32(indexes);
-                        }
-                        catch (FormatException e)
-                        {
-                            Console.WriteLine("invaild armuments");
-                            return;
-                        }
-                        MergeHKCL(hkclfile, hk2, Convert.ToInt32(indexes));
+                        Convert.ToInt32(indexes);
                     }
-                    ExportFile(hkclfile, args[0], args[1]);
-                    Listhkcl(hkclfile);
-                    return;
+                    catch (FormatException e)
+                    {
+                        Console.WriteLine("invaild armuments");
+                        return;
+                    }
+                    MergeHKCL(hkclfile, hk2, Convert.ToInt32(indexes));
                 }
+                ExportFile(hkclfile, args[1], args[2]);
+                Listhkcl(hkclfile);
+                return;
+            }
+            else if (args[0] == "--remove" || args[0] == "-r")
+            {
+                hkclfile = ReadHkclfile(args[2]);
+                RemoveCloth(hkclfile, Convert.ToInt32(args[3]));
+                ExportFile(hkclfile, args[1], args[2]);
+                Listhkcl(hkclfile);
+                return;
             }
             else if (args[0] == "--bonelist" || args[0] == "-bl")
             {
