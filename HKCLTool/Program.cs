@@ -82,6 +82,11 @@ namespace HKCLTool
                 ListBones(hkfile);
                 return;
             }
+            else if (args[0] == "--export" || args[0] == "-e")
+            {
+                hkclfile = ReadHkclfile(args[2]);
+                ExportFile(hkclfile, args[1], args[2]);
+            }
             else
                 Console.WriteLine("invaild armuments");
             return;
