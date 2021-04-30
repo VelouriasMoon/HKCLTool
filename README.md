@@ -3,10 +3,11 @@
 Merger tool for hkcl files based off the HKX2 libaray.
 
 usage:\
-merging: `hkcltool [-json/-hku/-hknx] [hkcl to merge into] [hkcl to merge from] [list of cloth indexes]`\
-listing: `hkcltool -l [hkcl or json]`\
-bones: `hkcltool -bl [hkcl or json]`\
-removing: `hkcltool [-json/-hku/-hknx] -r [hkcl or json] [index to remove]`
+merging: `hkcltool [--merge/-m] [json/hku/hknx] [hkcl to merge into] [hkcl to merge from] [list of cloth indexes]`\
+listing: `hkcltool [--list/-l] [hkcl or json]`\
+bones: `hkcltool [--bonelist/-bl] [hkcl or json]`\
+removing: `hkcltool [--remove/-r] [json/hku/hknx] [hkcl or json] [index to remove]`
+converting platform: `hkcltool [--export/-e] [json/hku/hknx] [hkcl or json]`
 
 example:\
 to add the 2 scarf physics from the stealth head to hylian upper and export them for the wii u\
