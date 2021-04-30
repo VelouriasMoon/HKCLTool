@@ -6,7 +6,7 @@ usage:\
 merging: `hkcltool [--merge/-m] [json/hku/hknx] [hkcl to merge into] [hkcl to merge from] [list of cloth indexes]`\
 listing: `hkcltool [--list/-l] [hkcl or json]`\
 bones: `hkcltool [--bonelist/-bl] [hkcl or json]`\
-removing: `hkcltool [--remove/-r] [json/hku/hknx] [hkcl or json] [index to remove]`
+removing: `hkcltool [--remove/-r] [json/hku/hknx] [hkcl or json] [index to remove]`\
 converting platform: `hkcltool [--export/-e] [json/hku/hknx] [hkcl or json]`
 
 example:\
