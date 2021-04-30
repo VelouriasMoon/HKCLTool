@@ -11,7 +11,7 @@ converting platform: `hkcltool [--export/-e] [json/hku/hknx] [hkcl or json]`
 
 example:\
 to add the 2 scarf physics from the stealth head to hylian upper and export them for the wii u\
-`hkcltool -hku Armor_001_Upper.hkcl Armor_012_Head_A.hkcl 4 5`
+`hkcltool -m hku Armor_001_Upper.hkcl Armor_012_Head_A.hkcl 4 5`
 
 ### Visual Examples
 
