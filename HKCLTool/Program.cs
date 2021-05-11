@@ -225,7 +225,7 @@ namespace HKCLTool
         {
             outpath = outpath.Replace(Path.GetExtension(outpath), "");
 
-            if (outformat == "-json")
+            if (outformat == "json")
             {
                 if (File.Exists(outpath + ".json"))
                     File.Delete(outpath + ".json");
@@ -236,7 +236,7 @@ namespace HKCLTool
             else
             {
                 HKXHeader header;
-                if (outformat == "-hknx")
+                if (outformat == "hknx")
                     header = HKXHeader.BotwNx();
                 else
                     header = HKXHeader.BotwWiiu();
