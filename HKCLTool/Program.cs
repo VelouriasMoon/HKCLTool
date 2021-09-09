@@ -87,6 +87,16 @@ namespace HKCLTool
                 hkclfile = ReadHkclfile(args[2]);
                 ExportFile(hkclfile, args[1], args[2]);
             }
+            else if (args[0] == "-t")
+            {
+                hkclfile = ReadHkclfile(args[1]);
+                string outfile;
+                if (Path.GetDirectoryName(args[1]) != "")
+                    outfile = Path.GetDirectoryName(args[1]);
+                else
+                    outfile = Directory.GetCurrentDirectory();
+                ExportMeshDivider(hkclfile, outfile);
+            }
             else
                 Console.WriteLine("invaild armuments");
             return;
@@ -314,5 +324,37 @@ namespace HKCLTool
         }
 
         #endregion
+
+        private static void ExportMeshDivider(hkRootLevelContainer hkfile, string outpath)
+        {
+            foreach (var namedVariant in hkfile.m_namedVariants)
+            {
+                if (namedVariant.m_className == "hclClothContainer")
+                {
+                    hclClothContainer ClothData = (hclClothContainer)namedVariant.m_variant;
+
+                    foreach (var clothdatas in ClothData.m_clothDatas)
+                    {
+                        Console.WriteLine(clothdatas.m_name);
+
+                        List<string> obj = new List<string>();
+                        obj.Add($"o {clothdatas.m_name}");
+                        obj.Add("# Vertex List");
+                        foreach (var vertex in clothdatas.m_simClothDatas[0].m_simClothPoses[0].m_positions)
+                        {
+                            obj.Add($"v {vertex.X} {vertex.Y} {vertex.Z}");
+                        }
+                        obj.Add("# Face List");
+                        var tris = clothdatas.m_simClothDatas[0].m_triangleIndices;
+                        int i = 0;
+                        while (i < tris.Count)
+                        {
+                            obj.Add($"f {tris[i++] + 1} {tris[i++] + 1} {tris[i++] + 1}");
+                        }
+                        File.WriteAllLines($"{outpath}\\{clothdatas.m_name}.obj", obj);
+                    }
+                }
+            }
+        }
     }
 }
