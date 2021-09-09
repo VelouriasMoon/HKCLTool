@@ -6,6 +6,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Lib\PICA\**" />
+    <EmbeddedResource Remove="Lib\PICA\**" />
+    <None Remove="Lib\PICA\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Lib\Formats\Common\MeshTransform.cs" />
+    <Compile Remove="Lib\Formats\Common\TextureTransform.cs" />
+    <Compile Remove="Lib\Formats\Common\TextureTransformType.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BotW-HKX2" Version="1.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>

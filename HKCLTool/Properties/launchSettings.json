@@ -1,7 +1,8 @@
 {
   "profiles": {
     "HKCLTool": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "-t Armor_001_Head_A.hkcl"
     }
   }
 }
