@@ -7,6 +7,7 @@ using HKX2;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using HKCLTool.Lib;
 
 namespace HKCLTool
 {
@@ -355,6 +356,80 @@ namespace HKCLTool
                     }
                 }
             }
+        }
+
+        private static void ExportSMD(hkRootLevelContainer hkfile, string outpath)
+        {
+
+        }
+
+        private static List<SMD.Triangles> SMDReadCloth(hclClothContainer cloth, int index)
+        {
+            List<SMD.Triangles> triangles = new List<SMD.Triangles>();
+            List<HKVertex> hKVertices = new List<HKVertex>();
+            var hktris = cloth.m_clothDatas[index].m_simClothDatas[0].m_triangleIndices;
+
+            foreach (var vert in cloth.m_clothDatas[index].m_simClothDatas[0].m_simClothPoses[0].m_positions)
+            {
+                HKVertex hKVertex= new HKVertex();
+                hKVertex.PosX = vert.X;
+                hKVertex.PosY = vert.Y;
+                hKVertex.PosZ = vert.Z;
+                hKVertices.Add(hKVertex);
+            }
+
+            var Skin = (hclObjectSpaceSkinPOperator)cloth.m_clothDatas[index].m_operators[0];
+
+            if (Skin.m_objectSpaceDeformer.m_fourBlendEntries.Count > 0)
+            {
+                foreach (var blend in Skin.m_objectSpaceDeformer.m_fourBlendEntries)
+                {
+                    
+                }
+            }
+
+            int i = 0;
+            while (i < hktris.Count)
+            {
+                SMD.Vertex V1 = new SMD.Vertex();
+                V1.PosX = hKVertices[hktris[i++]].PosX;
+                V1.PosY = hKVertices[hktris[i]].PosY;
+                V1.PosZ = hKVertices[hktris[i]].PosZ;
+
+                SMD.Vertex V2 = new SMD.Vertex();
+                V2.PosX = hKVertices[hktris[i++]].PosX;
+                V2.PosY = hKVertices[hktris[i]].PosY;
+                V2.PosZ = hKVertices[hktris[i]].PosZ;
+
+                SMD.Vertex V3 = new SMD.Vertex();
+                V3.PosX = hKVertices[hktris[i++]].PosX;
+                V3.PosY = hKVertices[hktris[i]].PosY;
+                V3.PosZ = hKVertices[hktris[i]].PosZ;
+
+                SMD.Triangles tri = new SMD.Triangles() { Material = cloth.m_clothDatas[index].m_simClothDatas[0].m_simClothPoses[0].m_name, Vertices = new List<SMD.Vertex>() { V1, V2, V3 } };
+                triangles.Add(tri);
+            }
+            return triangles;
+        }
+
+        private static void SMDReadSkeleton(hkaAnimationContainer skele)
+        {
+
+        }
+
+        public class HKVertex
+        {
+            public float PosX { get; set; }
+            public float PosY {  get; set; }
+            public float PosZ {  get; set; }
+            public ushort BoneIndex1 {  get; set; } = 0;
+            public ushort BoneIndex2 {  get; set; } = 0;
+            public ushort BoneIndex3 {  get; set; } = 0;
+            public ushort BoneIndex4 {  get; set; } = 0;
+            public byte BoneWeight1 {  get; set; } = 0;
+            public byte BoneWeight2 {  get; set; } = 0;
+            public byte BoneWeight3 {  get; set; } = 0;
+            public byte BoneWeight4 {  get; set; } = 0;
         }
     }
 }
