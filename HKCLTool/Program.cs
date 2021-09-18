@@ -8,6 +8,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using HKCLTool.Lib;
+using SPICA.Math3D;
+using System.Numerics;
 
 namespace HKCLTool
 {
@@ -96,7 +98,7 @@ namespace HKCLTool
                     outfile = Path.GetDirectoryName(args[1]);
                 else
                     outfile = Directory.GetCurrentDirectory();
-                ExportMeshDivider(hkclfile, outfile);
+                ExportSMD(hkclfile, $"{outfile}.smd");
             }
             else
                 Console.WriteLine("invaild armuments");
@@ -334,6 +336,8 @@ namespace HKCLTool
                 {
                     hclClothContainer ClothData = (hclClothContainer)namedVariant.m_variant;
 
+                    SMDReadCloth(ClothData, 0);
+
                     foreach (var clothdatas in ClothData.m_clothDatas)
                     {
                         Console.WriteLine(clothdatas.m_name);
@@ -360,15 +364,36 @@ namespace HKCLTool
 
         private static void ExportSMD(hkRootLevelContainer hkfile, string outpath)
         {
+            List<SMD.Triangles> Tris = new List<SMD.Triangles>();
+            List<SMD.Nodes> Nodes = new List<SMD.Nodes>();
+            List<SMD.Skeleton> Bones = new List<SMD.Skeleton>();
+            foreach (var namedVariant in hkfile.m_namedVariants)
+            {
+                if (namedVariant.m_className == "hclClothContainer")
+                {
+                    hclClothContainer ClothData = (hclClothContainer)namedVariant.m_variant;
+                    Tris = SMDReadCloth(ClothData, 2);
+                }
+                if (namedVariant.m_className == "hkaAnimationContainer")
+                {
+                    hkaAnimationContainer AnimData = (hkaAnimationContainer)namedVariant.m_variant;
+                    Nodes = SMDReadNodes(AnimData, 2);
+                    Bones = SMDReadSkeleton(AnimData, 2);
+                }
+            }
 
+            SMD smd = new SMD() { nodes = Nodes, skeleton = Bones, triangles = Tris };
+            File.WriteAllLines(outpath, smd.WriteSMD());
         }
 
-        private static List<SMD.Triangles> SMDReadCloth(hclClothContainer cloth, int index)
+        private static List<SMD.Triangles> SMDReadCloth(hclClothContainer cloth, int index = 0)
         {
             List<SMD.Triangles> triangles = new List<SMD.Triangles>();
             List<HKVertex> hKVertices = new List<HKVertex>();
             var hktris = cloth.m_clothDatas[index].m_simClothDatas[0].m_triangleIndices;
+            BlendData blend = new BlendData();
 
+            //Read vertex data from hkcl and make a new list of HKVertices
             foreach (var vert in cloth.m_clothDatas[index].m_simClothDatas[0].m_simClothPoses[0].m_positions)
             {
                 HKVertex hKVertex= new HKVertex();
@@ -378,33 +403,47 @@ namespace HKCLTool
                 hKVertices.Add(hKVertex);
             }
 
+            //Read weights from hkcl add them to the HKVertices
             var Skin = (hclObjectSpaceSkinPOperator)cloth.m_clothDatas[index].m_operators[0];
-
-            if (Skin.m_objectSpaceDeformer.m_fourBlendEntries.Count > 0)
+            blend = blend.Read(Skin);
+            if (blend.blendEntries != null && blend.blendEntries.Count > 0)
             {
-                foreach (var blend in Skin.m_objectSpaceDeformer.m_fourBlendEntries)
+                foreach (HKVertex vert in hKVertices)
                 {
-                    
+                    BlendEntry entry = blend.blendEntries.Find(x => x.X == vert.PosX || x.X == (vert.PosX * -1) && x.Y == vert.PosY && x.Z == vert.PosZ);
+
+                    vert.BoneIndex1 = entry.Bone_1;
+                    vert.BoneIndex2 = entry.Bone_2;
+                    vert.BoneIndex3 = entry.Bone_3;
+                    vert.BoneIndex4 = entry.Bone_4;
+                    vert.BoneWeight1 = entry.Weight_1;
+                    vert.BoneWeight2 = entry.Weight_2;
+                    vert.BoneWeight3 = entry.Weight_3;
+                    vert.BoneWeight4 = entry.Weight_4;
                 }
             }
 
+            //Convert HKvertex in SMDVertex
             int i = 0;
             while (i < hktris.Count)
             {
                 SMD.Vertex V1 = new SMD.Vertex();
-                V1.PosX = hKVertices[hktris[i++]].PosX;
+                V1.PosX = hKVertices[hktris[i]].PosX;
                 V1.PosY = hKVertices[hktris[i]].PosY;
                 V1.PosZ = hKVertices[hktris[i]].PosZ;
+                V1.links = HKVertToLinks(hKVertices[hktris[i++]]);
 
                 SMD.Vertex V2 = new SMD.Vertex();
-                V2.PosX = hKVertices[hktris[i++]].PosX;
+                V2.PosX = hKVertices[hktris[i]].PosX;
                 V2.PosY = hKVertices[hktris[i]].PosY;
                 V2.PosZ = hKVertices[hktris[i]].PosZ;
+                V2.links = HKVertToLinks(hKVertices[hktris[i++]]);
 
                 SMD.Vertex V3 = new SMD.Vertex();
-                V3.PosX = hKVertices[hktris[i++]].PosX;
+                V3.PosX = hKVertices[hktris[i]].PosX;
                 V3.PosY = hKVertices[hktris[i]].PosY;
                 V3.PosZ = hKVertices[hktris[i]].PosZ;
+                V3.links = HKVertToLinks(hKVertices[hktris[i++]]);
 
                 SMD.Triangles tri = new SMD.Triangles() { Material = cloth.m_clothDatas[index].m_simClothDatas[0].m_simClothPoses[0].m_name, Vertices = new List<SMD.Vertex>() { V1, V2, V3 } };
                 triangles.Add(tri);
@@ -412,9 +451,72 @@ namespace HKCLTool
             return triangles;
         }
 
-        private static void SMDReadSkeleton(hkaAnimationContainer skele)
+        private static List<SMD.Skeleton> SMDReadSkeleton(hkaAnimationContainer skele, int index = 0)
         {
+            List<SMD.Skeleton> bones = new List<SMD.Skeleton>();
+            hkaSkeleton skeleton = skele.m_skeletons[index];
 
+            int i = 0;
+            foreach (var bone in skeleton.m_referencePose)
+            {
+                if (i == 0)
+                    bones.Add(new SMD.Skeleton() { ID = i++, PosX = bone.M11, PosY = bone.M12, PosZ = bone.M13, RotX = bone.M21, RotY = bone.M22, RotZ = bone.M23 });
+                else
+                {
+                    // 4.7683716E-07 is used when the Y position of the bone does not move, this needs to be 0 for smd
+                    float Y = 0;
+                    if (bone.M12 != 4.7683716E-07)
+                        Y = bone.M12;
+
+                    //Convert M2X section to Euler
+                    Quaternion rot = new Quaternion(bone.M21, bone.M22, bone.M23, bone.M24);
+                    Vector3 Rotation = VectorExtensions.ToEuler(rot);
+
+                    bones.Add(new SMD.Skeleton()
+                    {
+                        ID = i,
+                        PosX = (bone.M11 + bones[i - 1].PosX),
+                        PosY = (Y + bones[i - 1].PosY),
+                        PosZ = (bone.M13 + bones[i - 1].PosZ),
+                        RotX = Rotation.X,
+                        RotY = Rotation.Y,
+                        RotZ = Rotation.Z
+                    });
+                    i++;
+                }                    
+            }
+
+
+            return bones;
+        }
+
+        private static List<SMD.Nodes> SMDReadNodes(hkaAnimationContainer skele, int index = 0)
+        {
+            List<SMD.Nodes> Nodes = new List<SMD.Nodes>();
+
+            hkaSkeleton skeleton = skele.m_skeletons[index];
+            int i = 0;
+            foreach (hkaBone bone in skeleton.m_bones)
+            {
+                Nodes.Add(new SMD.Nodes() { ID = i, Name = bone.m_name, Parent = skeleton.m_parentIndices[i++]});
+            }
+
+            return Nodes;
+        }
+
+        private static List<SMD.Links> HKVertToLinks(HKVertex hKVertex)
+        {
+            List<SMD.Links> links = new List<SMD.Links>();
+
+            links.Add(new SMD.Links() { BoneID = hKVertex.BoneIndex1, Weight = (float)(hKVertex.BoneWeight1 / 255.0)});
+            if (hKVertex.BoneWeight2 > 0)
+                links.Add(new SMD.Links() { BoneID = hKVertex.BoneIndex2, Weight = (float)(hKVertex.BoneWeight2 / 255.0) });
+            if (hKVertex.BoneWeight3 > 0)
+                links.Add(new SMD.Links() { BoneID = hKVertex.BoneIndex3, Weight = (float)(hKVertex.BoneWeight3 / 255.0) });
+            if (hKVertex.BoneWeight4 > 0)
+                links.Add(new SMD.Links() { BoneID = hKVertex.BoneIndex4, Weight = (float)(hKVertex.BoneWeight4 / 255.0) });
+
+            return links;
         }
 
         public class HKVertex
@@ -422,14 +524,14 @@ namespace HKCLTool
             public float PosX { get; set; }
             public float PosY {  get; set; }
             public float PosZ {  get; set; }
-            public ushort BoneIndex1 {  get; set; } = 0;
-            public ushort BoneIndex2 {  get; set; } = 0;
-            public ushort BoneIndex3 {  get; set; } = 0;
-            public ushort BoneIndex4 {  get; set; } = 0;
-            public byte BoneWeight1 {  get; set; } = 0;
-            public byte BoneWeight2 {  get; set; } = 0;
-            public byte BoneWeight3 {  get; set; } = 0;
-            public byte BoneWeight4 {  get; set; } = 0;
+            public int BoneIndex1 {  get; set; } = 0;
+            public int BoneIndex2 {  get; set; } = 0;
+            public int BoneIndex3 {  get; set; } = 0;
+            public int BoneIndex4 {  get; set; } = 0;
+            public uint BoneWeight1 {  get; set; } = 0;
+            public uint BoneWeight2 {  get; set; } = 0;
+            public uint BoneWeight3 {  get; set; } = 0;
+            public uint BoneWeight4 {  get; set; } = 0;
         }
     }
 }
